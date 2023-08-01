@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MCDAI Land Cover Map</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+
+    #map {
+      height: calc(100% - 40px); /* Subtract the height of the legend */
+    }
+
+    .legend {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
+      background-color: white;
+      padding: 10px;
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      border-radius: 5px;
+      box-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+
+    .legend-color {
+      width: 20px;
+      height: 20px;
+      margin-right: 5px;
+    }
+
+    .Inland_Water {
+      fill: #3182bd; /* Blue */
+      stroke: #FFFFFF; /* White */
+      stroke-width: 1; /* Thinner outline */
+      fill-opacity: 0.8; /* Decrease opacity */
+    }
+
+    .Mangrove_Forest {
+      fill: #238b45; /* Green */
+      stroke: #FFFFFF; /* White */
+      stroke-width: 1; /* Thinner outline */
+      fill-opacity: 0.8; /* Decrease opacity */
+    }
+
+    .Brush_Shrubs {
+      fill: #FFD37F; /* Light Blue */
+      stroke: #FFFFFF; /* White */
+      stroke-width: 1; /* Thinner outline */
+      fill-opacity: 0.8; /* Decrease opacity */
+    }
+
+    .Open_Barren {
+      fill: #fdae6b; /* Orange */
+      stroke: #FFFFFF; /* White */
+      stroke-width: 1; /* Thinner outline */
+      fill-opacity: 0.8; /* Decrease opacity */
+    }
+
+    .Grassland {
+      fill: #66c2a5; /* Turquoise */
+      stroke: #FFFFFF; /* White */
+      stroke-width: 1; /* Thinner outline */
+      fill-opacity: 0.8; /* Decrease opacity */
+    }
+
+    .Annual_Crop {
+      fill: #fd8d3c; /* Reddish Orange */
+      stroke: #FFFFFF; /* White */
+      stroke-width: 1; /* Thinner outline */
+      fill-opacity: 0.8; /* Decrease opacity */
+    }
+
+    .Perennial_Crop {
+      fill: #e6550d; /* Dark Orange */
+      stroke: #FFFFFF; /* White */
+      stroke-width: 1; /* Thinner outline */
+      fill-opacity: 0.8; /* Decrease opacity */
+    }
+
+    .Built-up {
+      fill: #756bb1; /* Purple */
+      stroke: #FFFFFF; /* White */
+      stroke-width: 1; /* Thinner outline */
+      fill-opacity: 0.8; /* Decrease opacity */
+    }
+
+  .Open_Forest {
+    fill: #55FF00; /* New color */
+    stroke: #FFFFFF; /* White */
+    stroke-width: 1; /* Thinner outline */
+    fill-opacity: 0.8; /* Decrease opacity */
+  }
+
+    .Closed_Forest {
+    fill: #267300; /* New color */
+    stroke: #FFFFFF; /* White */
+    stroke-width: 1; /* Thinner outline */
+    fill-opacity: 0.8; /* Decrease opacity */
+  }
+
+    .Fishpond {
+      fill: #ffc0cb; /* Dark Green */
+      stroke: #FFFFFF; /* White */
+      stroke-width: 1; /* Thinner outline */
+      fill-opacity: 0.8; /* Decrease opacity */
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #3182bd;"></div>
+      Inland Water
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #238b45;"></div>
+      Mangrove Forest
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #FFD37F;"></div>
+      Brush/Shrubs
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #fdae6b;"></div>
+      Open/Barren
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #66c2a5;"></div>
+      Grassland
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #fd8d3c;"></div>
+      Annual Crop
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #e6550d;"></div>
+      Perennial Crop
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #756bb1;"></div>
+      Built-up
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #ffc0cb;"></div>
+      Fishpond
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #55FF00;"></div>
+      Open Forest
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #267300;"></div>
+      Closed Forest
+    </div>
+  </div>
+
+  <script src="mcdai.js"></script>
+  <script>
+    // Initialize the map
+    var map = L.map('map').setView([14.182128165000051,122.41174233700008], 13); // Coordinates for Capalonga: [latitude, longitude] and zoom level
+
+    // Add the Esri satellite imagery basemap to the map
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri',
+      maxZoom: 18,
+    }).addTo(map);
+
+    var mcdailc = L.geoJson(mcdai, {
+      style: function(feature) {
+        var class_name = feature.properties.class_name;
+        return { className: class_name.replace(/ /g, '_') };
+      },
+      onEachFeature: function(feature, layer) {
+        layer.on('click', function(e) {
+          var class_name = feature.properties.class_name;
+          var shape_area = feature.properties.Area;
+          var shape_area_hectares = (shape_area).toFixed(2); // Convert from square degrees to hectares
+
+          var popupContent = '<b>Class Name:</b> ' + class_name + '<br>' +
+                             '<b>Shape Area:</b> ' + shape_area_hectares + ' hectares';
+
+          layer.bindPopup(popupContent).openPopup();
+        });
+      }
+    }).addTo(map);
+  </script>
+</body>
+</html>
